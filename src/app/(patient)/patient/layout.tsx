@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
-import { detectRoleByEmail, getDashboardPathByRole } from "@/lib/auth/roles";
+import { detectRoleByEmail } from "@/lib/auth/roles";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function Home() {
+export default async function PatientLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
@@ -14,9 +16,13 @@ export default async function Home() {
 
   const role = await detectRoleByEmail(supabase, user.email);
 
-  if (!role) {
+  if (role === "doctor") {
+    redirect("/doctor/dashboard");
+  }
+
+  if (role !== "patient") {
     redirect("/login");
   }
 
-  redirect(getDashboardPathByRole(role));
+  return <>{children}</>;
 }
